@@ -107,27 +107,33 @@ public class PlayerController : MonoBehaviour
         controller.Move(gravityMove * Time.fixedDeltaTime);
     }
 
+    // 카메라와 관련된 설정을 초기화하는 메서드
     private void CameraSetting()
     {
-        _camera = Camera.main;
-        _camPivot = new GameObject("CameraPivot").transform;
-        _camPivot.position = transform.position + Vector3.up * 1.8f;
-        _camPivot.parent = transform;
+        _camera = Camera.main; // 현재 씬에서 MainCamera 태그가 붙은 카메라를 가져옴
+        _camPivot = new GameObject("CameraPivot").transform;// 카메라의 회전 중심이 될 피벗 오브젝트를 생성
+        _camPivot.position = transform.position + Vector3.up * 1.8f; // 피벗의 위치를 플레이어의 머리 위로 설정(1.8m 위)
+        _camPivot.parent = transform; // 피벗을 플레이어에 종속시켜 플레이어가 움직이면 피벗도 따라가도록 설정
 
-        _camera.transform.parent = _camPivot;
-        _camera.transform.localPosition = defaultCamOffset;
-        _camera.transform.LookAt(_camPivot);
+        _camera.transform.parent = _camPivot; // 카메라를 피벗의 자식으로 설정하여 비벗을 기준으로 회전
+        _camera.transform.localPosition = defaultCamOffset; // 카메라의 로컬 위치를 기본 위치로 설정(뒤쪽 시점)
+        _camera.transform.LookAt(_camPivot); // 카메라가 항상 피벗을 바라보도록 설정 (3인칭)
     }
 
+    // 마우스 입력으로 카메라를 회전시키는 메서드
     private void HandleCamera()
     {
-        mouseX += Input.GetAxis("Mouse X") * rotationSpeed;
-        mouseY -= Input.GetAxis("Mouse Y") * rotationSpeed;
-        mouseY = Mathf.Clamp(mouseY, -45, 45);
+        mouseX += Input.GetAxis("Mouse X") * rotationSpeed; // 마우스 X축 움직임을 받아서 수평 회전 값에 누적
+        mouseY -= Input.GetAxis("Mouse Y") * rotationSpeed; // 마우스 Y축 움직임을 받아서 수직 회전 값에 누적(반대로 뒤집음)
+        mouseY = Mathf.Clamp(mouseY, -45, 45); // 수직 회전은 - 45도에서 +45도 사이로 제한하여 지나친 회전 방지
 
+        // 피벗을 X, Y 회전값으로 회전시켜 카메라가 따라 움직이도록 설정
         _camPivot.rotation = Quaternion.Euler(mouseY, mouseX, 0);
 
+        // 조준 중이면 조준 카메라 위치 아니면 기본 카메라 위치로 설정
         Vector3 targetPosition = isAiming ? aimCamOffset : defaultCamOffset;
+
+        // 카메라 위치를 부드럽게 전환(Lerp)하여 부드러운 전환 효과 제공
         _camera.transform.localPosition = Vector3.Lerp(_camera.transform.localPosition, targetPosition, Time.deltaTime * aimSpeed);
     }
 
